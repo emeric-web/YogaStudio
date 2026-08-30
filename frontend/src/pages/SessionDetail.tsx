@@ -10,29 +10,50 @@ function SessionDetail() {
   const [session, setSession] = useState<any>(null);
   const [loading, setLoading] = useState<any>(true);
   const [error, setError] = useState<any>('');
+  const [reloadKey, setReloadKey] = useState(0);
   const user = authService.getCurrentUser();
   const token = authService.getToken();
 
   useEffect(() => {
-    fetchSession();
-  }, [id]);
-
-  const fetchSession = async (): Promise<any> => {
-    try {
-      setLoading(true);
-      const response = await api.get<Session>(`/session/${id}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      setSession(response.data);
-    } catch (err: any) {
-      setError('Failed to load session details');
-      console.error(err);
-    } finally {
+    if (!id) {
+      setError('Invalid session identifier');
       setLoading(false);
+      return;
     }
-  };
+
+    const controller = new AbortController();
+
+    const fetchSession = async (): Promise<void> => {
+      try {
+        setLoading(true);
+        setError('');
+
+        const response = await api.get<Session>(`/session/${id}`, {
+          signal: controller.signal,
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        setSession(response.data);
+      } catch (err: unknown) {
+        if (!controller.signal.aborted) {
+          setError('Failed to load session details');
+          console.error(err);
+        }
+      } finally {
+        if (!controller.signal.aborted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    void fetchSession();
+
+    return (): void => controller.abort();
+  }, [reloadKey, id, token]);
+
+
 
   const handleParticipate = async (): Promise<any> => {
     try {
@@ -45,7 +66,7 @@ function SessionDetail() {
           },
         }
       );
-      fetchSession();
+      setReloadKey((prev) => prev + 1);
     } catch (err: any) {
       alert('Failed to join session');
       console.error(err);
@@ -59,7 +80,7 @@ function SessionDetail() {
           Authorization: `Bearer ${token}`,
         },
       });
-      fetchSession();
+      setReloadKey((prev) => prev + 1);
     } catch (err: any) {
       alert('Failed to leave session');
       console.error(err);

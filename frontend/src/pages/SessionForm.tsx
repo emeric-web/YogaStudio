@@ -23,50 +23,71 @@ function SessionForm() {
 
   // Redirect if not admin
   useEffect(() => {
-    if (!user || !user.admin) {
+    if (!user?.admin) {
       navigate('/sessions');
     }
-  }, [user, navigate]);
+  }, [user?.admin, navigate]);
 
   useEffect(() => {
-    fetchTeachers();
-    if (isEditMode) {
-      fetchSession();
+    if (!user?.admin) {
+      return;
     }
-  }, [id]);
+    const controller = new AbortController();
 
-  const fetchTeachers = async (): Promise<any> => {
-    try {
-      const response = await api.get<Teacher[]>('/teacher', {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      setTeachers(response.data);
-    } catch (err: any) {
-      console.error('Failed to fetch teachers', err);
-    }
-  };
+    const fetchTeachers = async (): Promise<void> => {
+      try {
+        setError('');
 
-  const fetchSession = async (): Promise<any> => {
-    try {
-      const response = await api.get<Session>(`/session/${id}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      const session = response.data;
-      setFormData({
-        name: session.name,
-        date: new Date(session.date).toISOString().split('T')[0],
-        description: session.description,
-        teacherId: session.teacher.id,
-      });
-    } catch (err: any) {
-      setError('Failed to load session');
-      console.error(err);
+        const response = await api.get<Teacher[]>('/teacher', {
+          signal: controller.signal,
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        
+        setTeachers(response.data);
+      } catch (err: unknown) {
+        if (!controller.signal.aborted) {
+          console.error('Failed to fetch teachers', err);
+        }
+      }
+    };
+
+    const fetchSession = async (): Promise<void> => {
+      try {
+        setError('');
+        
+        const response = await api.get<Session>(`/session/${id}`, {
+          signal: controller.signal,
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        const session = response.data;
+        
+        setFormData({
+          name: session.name,
+          date: new Date(session.date).toISOString().split('T')[0],
+          description: session.description,
+          teacherId: session.teacher.id,
+        });
+      } catch (err: unknown) {
+        if (!controller.signal.aborted) {
+          setError('Failed to load session');
+          console.error(err);
+        }
+      }
+    };
+
+    void fetchTeachers();
+
+    if (id) {
+      void fetchSession();
     }
-  };
+
+    return (): void => controller.abort();
+  }, [id, token, user?.admin]);
 
   const handleChange = (e: any): any => {
     const value =

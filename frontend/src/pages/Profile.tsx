@@ -15,27 +15,44 @@ function Profile() {
   const isDev = (import.meta as any).env?.DEV === true;
 
   useEffect(() => {
-    if (user) {
-      fetchUserInfo();
-    }
-  }, []);
-
-  const fetchUserInfo = async (): Promise<any> => {
-    try {
-      setLoading(true);
-      const response = await api.get(`/user/${user.id}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      setUserInfo(response.data);
-    } catch (err: any) {
-      setError('Failed to load user information');
-      console.error(err);
-    } finally {
+    if (!user) {
       setLoading(false);
+      return;
     }
-  };
+
+    const controller = new AbortController();
+
+    const fetchUserInfo = async (): Promise<void> => {
+      try {
+        setLoading(true);
+        setError('');
+
+        const response = await api.get(`/user/${user.id}`, {
+          signal: controller.signal,
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        setUserInfo(response.data);
+      } catch (err: unknown) {
+        if (!controller.signal.aborted) {
+          setError('Failed to load user information');
+          console.error(err);
+        }
+      } finally {
+        if (!controller.signal.aborted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    void fetchUserInfo();
+
+    return () => controller.abort();
+  }, [user?.id, token]);
+
+
 
   const handleDeleteAccount = async (): Promise<any> => {
     if (!window.confirm('Are you sure you want to delete your account? This action cannot be undone.')) {

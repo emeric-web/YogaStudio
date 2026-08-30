@@ -8,29 +8,42 @@ function Sessions() {
   const [sessions, setSessions] = useState<any>([]);
   const [loading, setLoading] = useState<any>(true);
   const [error, setError] = useState<any>('');
+  const [reloadKey, setReloadKey] = useState(0);
   const user = authService.getCurrentUser();
   const token = authService.getToken();
 
   useEffect(() => {
-    fetchSessions();
-  }, []);
+    const controller = new AbortController();
 
-  const fetchSessions = async (): Promise<any> => {
-    try {
-      setLoading(true);
-      const response = await api.get<Session[]>('/session', {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      setSessions(response.data);
-    } catch (err: any) {
-      setError('Failed to load sessions');
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
+    const fetchSessions = async (): Promise<void> => {
+      try {
+        setLoading(true);
+        setError('');
+
+        const response = await api.get<Session[]>('/session', {
+          signal: controller.signal,
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        setSessions(response.data);
+      } catch (err: any) {
+        if (!controller.signal.aborted) {
+          setError('Failed to load sessions');
+          console.error(err);
+        }
+      } finally {
+        if (!controller.signal.aborted) {
+          setLoading(false);
+        }
+      }
+    };
+    
+    void fetchSessions();
+
+    return (): void => controller.abort();
+  }, [reloadKey, token]);
 
   const handleDelete = async (sessionId: any): Promise<any> => {
     if (!window.confirm('Are you sure you want to delete this session?')) {
@@ -43,7 +56,7 @@ function Sessions() {
           Authorization: `Bearer ${token}`,
         },
       });
-      fetchSessions();
+      setReloadKey((prev) => prev + 1);
     } catch (err: any) {
       alert('Failed to delete session');
       console.error(err);
