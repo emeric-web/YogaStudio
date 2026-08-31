@@ -161,7 +161,7 @@ function Profile(): ReactElement {
                   </span>
                 )}
               </p>
-              {isDev && !userInfo.admin ? (
+              {(isDev && !userInfo.admin) && (
                 <div className="mt-3">
                   <button
                     onClick={handlePromoteAdmin}
@@ -170,11 +170,11 @@ function Profile(): ReactElement {
                   >
                     {promoteLoading ? 'Promoting...' : 'Promote to Admin (Dev)'}
                   </button>
-                  {promoteError ? (
+                  {promoteError && (
                     <div className="mt-2 text-sm text-red-600">{promoteError}</div>
-                  ) : null}
+                  )}
                 </div>
-              ) : null}
+              )}
             </div>
 
             <div className="border-b pb-4">
@@ -182,11 +182,13 @@ function Profile(): ReactElement {
                 Member Since
               </label>
               <p className="text-lg text-gray-800">
-                {userInfo.createdAt && new Date(userInfo.createdAt).toLocaleDateString('en-US', {
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric',
-                })}
+                {userInfo.createdAt && (
+                  new Date(userInfo.createdAt).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                  })
+                )}
               </p>
             </div>
           </div>

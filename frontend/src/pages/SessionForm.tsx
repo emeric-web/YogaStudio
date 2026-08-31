@@ -133,11 +133,11 @@ function SessionForm(): ReactElement {
             {isEditMode ? 'Edit Session' : 'Create New Session'}
           </h1>
 
-          {error ? (
+          {error && (
             <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
               {error}
             </div>
-          ) : null}
+          )}
 
           <form onSubmit={handleSubmit}>
             <div className="mb-4">
@@ -208,7 +208,12 @@ function SessionForm(): ReactElement {
                 disabled={loading}
                 className="flex-1 bg-indigo-600 text-white py-2 px-4 rounded-lg hover:bg-indigo-700 disabled:bg-gray-400"
               >
-                {loading ? 'Saving...' : isEditMode ? 'Update Session' : 'Create Session'}
+                {loading ?
+                  'Saving...' :
+                  isEditMode ?
+                    'Update Session' :
+                    'Create Session'
+                }
               </button>
               <button
                 type="button"

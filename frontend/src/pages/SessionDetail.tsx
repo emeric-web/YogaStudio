@@ -186,24 +186,20 @@ function SessionDetail(): ReactElement {
                   Delete
                 </button>
               </>
+            ) : isParticipating ? (
+              <button
+                onClick={handleUnparticipate}
+                className="bg-red-600 text-white px-6 py-2 rounded hover:bg-red-700"
+              >
+                Leave Session
+              </button>
             ) : (
-              <>
-                {isParticipating ? (
-                  <button
-                    onClick={handleUnparticipate}
-                    className="bg-red-600 text-white px-6 py-2 rounded hover:bg-red-700"
-                  >
-                    Leave Session
-                  </button>
-                ) : (
-                  <button
-                    onClick={handleParticipate}
-                    className="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700"
-                  >
-                    Join Session
-                  </button>
-                )}
-              </>
+              <button
+                onClick={handleParticipate}
+                className="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700"
+              >
+                Join Session
+              </button>
             )}
 
             <button
