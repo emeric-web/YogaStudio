@@ -1,9 +1,9 @@
-import { useState } from 'react';
+import { type ReactElement, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { authService } from '../services/auth.service';
 import axios from 'axios';
 
-function Login() {
+function Login(): ReactElement {
   const navigate = useNavigate();
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');

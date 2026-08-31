@@ -1,7 +1,8 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { authService } from '../services/auth.service';
+import type { ReactElement } from 'react';
 
-function Navbar() {
+function Navbar(): ReactElement {
   const navigate = useNavigate();
   const user = authService.getCurrentUser();
   const isAuthenticated = authService.isAuthenticated();

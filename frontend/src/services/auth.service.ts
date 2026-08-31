@@ -1,5 +1,5 @@
 import api from './api';
-import { AuthResponse, LoginCredentials, RegisterData, User } from '../types';
+import { AuthResponse, LoginCredentials, RegisterData } from '../types';
 
 export const authService = {
   login: async (credentials: LoginCredentials): Promise<AuthResponse> => {
@@ -20,15 +20,15 @@ export const authService = {
     return response.data;
   },
 
-  logout: () => {
+  logout: (): void => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
   },
 
-  getCurrentUser: (): User | null => {
+  getCurrentUser: (): AuthResponse | null => {
     const userStr = localStorage.getItem('user');
     if (userStr) {
-      return JSON.parse(userStr);
+      return JSON.parse(userStr) as AuthResponse;
     }
     return null;
   },
@@ -38,7 +38,7 @@ export const authService = {
     if (!userStr) {
       return null;
     }
-    const existing = JSON.parse(userStr);
+    const existing = JSON.parse(userStr) as AuthResponse;
     const nextUser = { ...existing, ...updates };
     localStorage.setItem('user', JSON.stringify(nextUser));
     return nextUser;

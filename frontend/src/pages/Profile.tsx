@@ -1,17 +1,17 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, type ReactElement } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import { authService } from '../services/auth.service';
 import { User } from '../types';
 
-function Profile() {
+function Profile(): ReactElement {
   const navigate = useNavigate();
   const [userInfo, setUserInfo] = useState<User | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>('');
   const [promoteLoading, setPromoteLoading] = useState<boolean>(false);
   const [promoteError, setPromoteError] = useState<string>('');
-  const user = authService.getCurrentUser() as User;
+  const user = authService.getCurrentUser();
   const token = authService.getToken();
   const isDev = import.meta.env.DEV;
 
@@ -28,7 +28,7 @@ function Profile() {
         setLoading(true);
         setError('');
 
-        const response = await api.get(`/user/${user.id}`, {
+        const response = await api.get<User>(`/user/${user.id}`, {
           signal: controller.signal,
           headers: {
             Authorization: `Bearer ${token}`,
@@ -50,7 +50,7 @@ function Profile() {
 
     void fetchUserInfo();
 
-    return () => controller.abort();
+    return (): void => controller.abort();
   }, [user?.id, token]);
 
 
@@ -61,6 +61,9 @@ function Profile() {
     }
 
     try {
+      if (!user) {
+        throw new Error('User not found');
+      }
       await api.delete(`/user/${user.id}`, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -78,7 +81,7 @@ function Profile() {
     try {
       setPromoteError('');
       setPromoteLoading(true);
-      const response = await api.post(
+      const response = await api.post<User>(
         '/user/promote-admin',
         {},
         {

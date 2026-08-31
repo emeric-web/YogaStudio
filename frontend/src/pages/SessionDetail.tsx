@@ -1,17 +1,17 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, type ReactElement } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import { authService } from '../services/auth.service';
-import { Session, User } from '../types';
+import { Session } from '../types';
 
-function SessionDetail() {
+function SessionDetail(): ReactElement {
   const { id } = useParams();
   const navigate = useNavigate();
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>('');
   const [reloadKey, setReloadKey] = useState(0);
-  const user = authService.getCurrentUser() as User;
+  const user = authService.getCurrentUser();
   const token = authService.getToken();
 
   useEffect(() => {
@@ -57,6 +57,9 @@ function SessionDetail() {
 
   const handleParticipate = async (): Promise<void> => {
     try {
+      if (!user) {
+        throw new Error('User not found');
+      }
       await api.post(
         `/session/${id}/participate/${user.id}`,
         {},
@@ -75,6 +78,9 @@ function SessionDetail() {
 
   const handleUnparticipate = async (): Promise<void> => {
     try {
+      if (!user) {
+        throw new Error('User not found');
+      }
       await api.delete(`/session/${id}/participate/${user.id}`, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -123,7 +129,7 @@ function SessionDetail() {
     );
   }
 
-  const isParticipating = session.users.includes(user.id);
+  const isParticipating = user ? session.users.includes(user.id) : false;
 
   return (
     <div className="min-h-screen bg-gray-100 py-8">
@@ -165,7 +171,7 @@ function SessionDetail() {
           </div>
 
           <div className="flex space-x-4">
-            {user.admin ? (
+            {user?.admin ? (
               <>
                 <button
                   onClick={() => navigate(`/sessions/edit/${id}`)}

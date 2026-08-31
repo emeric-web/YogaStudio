@@ -1,10 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, type ReactElement } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import api from '../services/api';
 import { authService } from '../services/auth.service';
 import { Teacher, Session, SessionFormData } from '../types';
 
-function SessionForm() {
+function SessionForm(): ReactElement {
   const navigate = useNavigate();
   const { id } = useParams();
   const isEditMode = !!id;

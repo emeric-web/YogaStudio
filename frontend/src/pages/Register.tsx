@@ -1,10 +1,10 @@
-import { useState } from 'react';
+import { type ReactElement, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { authService } from '../services/auth.service';
 import { RegisterData } from '../types';
 import axios from 'axios';
 
-function Register() {
+function Register(): ReactElement {
   const navigate = useNavigate();
   const [formData, setFormData] = useState<RegisterData>({
     email: '',
