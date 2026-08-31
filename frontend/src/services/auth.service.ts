@@ -27,19 +27,31 @@ export const authService = {
 
   getCurrentUser: (): AuthResponse | null => {
     const userStr = localStorage.getItem('user');
-    if (userStr) {
-      return JSON.parse(userStr) as AuthResponse;
-    }
-    return null;
-  },
 
-  updateCurrentUser: (updates: Partial<AuthResponse>): AuthResponse | null => {
-    const userStr = localStorage.getItem('user');
     if (!userStr) {
       return null;
     }
-    const existing = JSON.parse(userStr) as AuthResponse;
-    const nextUser = { ...existing, ...updates };
+
+    try {
+      return JSON.parse(userStr) as AuthResponse;
+    } catch {
+      authService.logout();
+      return null;
+    }
+  },
+
+  updateCurrentUser: (updates: Partial<AuthResponse>): AuthResponse | null => {
+    const existing = authService.getCurrentUser();
+    
+    if (!existing) {
+      return null;
+    }
+
+    const nextUser: AuthResponse = {
+      ...existing,
+      ...updates
+    };
+    
     localStorage.setItem('user', JSON.stringify(nextUser));
     return nextUser;
   },

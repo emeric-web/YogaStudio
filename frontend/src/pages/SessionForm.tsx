@@ -3,17 +3,22 @@ import { useNavigate, useParams } from 'react-router-dom';
 import api from '../services/api';
 import { authService } from '../services/auth.service';
 import { Teacher, Session, SessionFormData } from '../types';
+import axios from 'axios';
+
+type SessionFormState = Omit<SessionFormData, 'teacherId'> & {
+  teacherId: string;
+};
 
 function SessionForm(): ReactElement {
   const navigate = useNavigate();
   const { id } = useParams();
   const isEditMode = !!id;
 
-  const [formData, setFormData] = useState<SessionFormData>({
+  const [formData, setFormData] = useState<SessionFormState>({
     name: '',
     date: '',
     description: '',
-    teacherId: 0,
+    teacherId: '',
   });
   const [teachers, setTeachers] = useState<Teacher[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
@@ -70,7 +75,7 @@ function SessionForm(): ReactElement {
           name: session.name,
           date: new Date(session.date).toISOString().split('T')[0],
           description: session.description,
-          teacherId: session.teacher.id,
+          teacherId: String(session.teacher.id),
         });
       } catch (err: unknown) {
         if (!controller.signal.aborted) {
@@ -90,28 +95,39 @@ function SessionForm(): ReactElement {
   }, [id, token, user?.admin]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>): void => {
-    const value =
-      e.target.name === 'teacherId' ? parseInt(e.target.value) : e.target.value;
-    setFormData({
-      ...formData,
-      [e.target.name]: value,
-    });
+    const { name, value } = e.target;
+
+    setFormData((currentFormData) => ({
+      ...currentFormData,
+      [name]: value,
+    }));
   };
 
   const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
     setError('');
+
+    if (formData.teacherId === '') {
+      setError('Please select a teacher');
+      return;
+    }
+
     setLoading(true);
+
+    const payload: SessionFormData = {
+      ...formData,
+      teacherId: Number(formData.teacherId),
+    };
 
     try {
       if (isEditMode) {
-        await api.put(`/session/${id}`, formData, {
+        await api.put(`/session/${id}`, payload, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
       } else {
-        await api.post('/session', formData, {
+        await api.post('/session', payload, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -119,7 +135,11 @@ function SessionForm(): ReactElement {
       }
       navigate('/sessions');
     } catch (err: unknown) {
-      setError((err as { response?: { data?: { message?: string } } }).response?.data?.message || 'Failed to save session');
+      if (axios.isAxiosError(err)) {
+        setError(err.response?.data?.message || 'Failed to save session');
+      } else {
+        setError('An unexpected error occurred');
+      }
     } finally {
       setLoading(false);
     }
