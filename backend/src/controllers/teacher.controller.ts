@@ -1,42 +1,25 @@
 import { Response } from 'express';
-import { PrismaClient } from '@prisma/client';
 import { AuthRequest } from '../middleware/auth.middleware';
 import { TeacherIdSchema } from '../dto/common.dto';
-
-const prisma = new PrismaClient();
+import { TeacherService } from '../services/teacher.service';
 
 export class TeacherController {
-  async getAll(req: AuthRequest, res: Response) {
-    const teachers = await prisma.teacher.findMany({
-      orderBy: {
-        createdAt: 'desc',
-      },
-    });
+  constructor(private readonly teacherService: TeacherService) {}
 
-    const response: any = teachers.map((teacher: any) => ({
-      id: teacher.id,
-      firstName: teacher.firstName,
-      lastName: teacher.lastName,
-      createdAt: teacher.createdAt,
-      updatedAt: teacher.updatedAt,
-    }));
+  async getAll(_req: AuthRequest, res: Response) {
+    const teachers = await this.teacherService.getAll();
 
-    return res.status(200).json(response);
+    return res.status(200).json(teachers);
   }
 
   async getById(req: AuthRequest, res: Response) {
     const { id } = TeacherIdSchema.parse(req.params);
-
-    const teacher = await prisma.teacher.findUnique({
-      where: { id },
-    });
+    const teacher = await this.teacherService.getById(id);
 
     if (!teacher) {
       return res.status(404).json({ message: 'Teacher not found' });
     }
 
-    const response: any = { ...teacher };
-
-    return res.status(200).json(response);
+    return res.status(200).json(teacher);
   }
 }

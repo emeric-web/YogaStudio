@@ -4,14 +4,19 @@ import { SessionController } from '../controllers/session.controller';
 import { TeacherController } from '../controllers/teacher.controller';
 import { UserController } from '../controllers/user.controller';
 import { authMiddleware } from '../middleware/auth.middleware';
+import { prisma } from '../database/prisma';
+import { TeacherRepository } from '../repositories/teacher.repository';
+import { TeacherService } from '../services/teacher.service';
 
 const router = Router();
 
 // Controllers
 const authController = new AuthController();
 const sessionController = new SessionController();
-const teacherController = new TeacherController();
 const userController = new UserController();
+const teacherRepository = new TeacherRepository(prisma);
+const teacherService = new TeacherService(teacherRepository);
+const teacherController = new TeacherController(teacherService);
 
 // Auth routes (public)
 router.post('/api/auth/login', (req, res) => authController.login(req, res));
