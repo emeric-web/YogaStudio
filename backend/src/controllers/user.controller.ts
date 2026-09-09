@@ -1,63 +1,36 @@
 import { Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { AuthRequest } from '../middleware/auth.middleware';
+import { UserIdSchema } from '../dto/common.dto';
 
 const prisma = new PrismaClient();
 
 export class UserController {
   async getById(req: AuthRequest, res: Response) {
-    const { id } = req.params as { id: string };
-
-    if (!id) {
-      return res.status(400).json({ message: 'User ID is required' });
-    }
-
-    const userId = parseInt(id);
-
-    if (isNaN(userId)) {
-      return res.status(400).json({ message: 'Invalid user ID' });
-    }
+    const { id } = UserIdSchema.parse(req.params);
 
     const user = await prisma.user.findUnique({
-      where: { id: userId },
+      where: { id },
     });
 
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    const response: any = {
-      id: user.id,
-      email: user.email,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      admin: user.admin,
-      createdAt: user.createdAt,
-      updatedAt: user.updatedAt,
-    };
+    const { password, ...response } = user;
 
     return res.status(200).json(response);
   }
 
   async delete(req: AuthRequest, res: Response) {
-    const { id } = req.params as { id: string };
+    const { id } = UserIdSchema.parse(req.params);
 
-    if (!id) {
-      return res.status(400).json({ message: 'User ID is required' });
-    }
-
-    const userId = parseInt(id);
-
-    if (isNaN(userId)) {
-      return res.status(400).json({ message: 'Invalid user ID' });
-    }
-
-    if (req.userId !== userId) {
+    if (req.userId !== id) {
       return res.status(403).json({ message: 'You can only delete your own account' });
     }
 
     const user = await prisma.user.findUnique({
-      where: { id: userId },
+      where: { id },
     });
 
     if (!user) {
@@ -65,7 +38,7 @@ export class UserController {
     }
 
     await prisma.user.delete({
-      where: { id: userId },
+      where: { id },
     });
 
     return res.status(200).json({ message: 'User deleted successfully' });
@@ -90,15 +63,9 @@ export class UserController {
     }
 
     if (user.admin) {
-      return res.status(200).json({
-        id: user.id,
-        email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        admin: user.admin,
-        createdAt: user.createdAt,
-        updatedAt: user.updatedAt,
-      });
+      const { password, ...response } = user;
+
+      return res.status(200).json(response);
     }
 
     const updatedUser = await prisma.user.update({
@@ -106,14 +73,8 @@ export class UserController {
       data: { admin: true },
     });
 
-    return res.status(200).json({
-      id: updatedUser.id,
-      email: updatedUser.email,
-      firstName: updatedUser.firstName,
-      lastName: updatedUser.lastName,
-      admin: updatedUser.admin,
-      createdAt: updatedUser.createdAt,
-      updatedAt: updatedUser.updatedAt,
-    });
+    const { password, ...response } = updatedUser;
+
+    return res.status(200).json(response);
   }
 }

@@ -1,6 +1,7 @@
 import { Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { AuthRequest } from '../middleware/auth.middleware';
+import { TeacherIdSchema } from '../dto/common.dto';
 
 const prisma = new PrismaClient();
 
@@ -24,33 +25,17 @@ export class TeacherController {
   }
 
   async getById(req: AuthRequest, res: Response) {
-    const { id } = req.params as { id: string };
-
-    if (!id) {
-      return res.status(400).json({ message: 'Teacher ID is required' });
-    }
-
-    const teacherId = parseInt(id);
-
-    if (isNaN(teacherId)) {
-      return res.status(400).json({ message: 'Invalid teacher ID' });
-    }
+    const { id } = TeacherIdSchema.parse(req.params);
 
     const teacher = await prisma.teacher.findUnique({
-      where: { id: teacherId },
+      where: { id },
     });
 
     if (!teacher) {
       return res.status(404).json({ message: 'Teacher not found' });
     }
 
-    const response: any = {
-      id: teacher.id,
-      firstName: teacher.firstName,
-      lastName: teacher.lastName,
-      createdAt: teacher.createdAt,
-      updatedAt: teacher.updatedAt,
-    };
+    const response: any = { ...teacher };
 
     return res.status(200).json(response);
   }

@@ -1,11 +1,13 @@
 import { Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { AuthRequest } from '../middleware/auth.middleware';
+import { CreateSessionSchema, UpdateSessionSchema } from '../dto/session.dto';
+import { SessionIdSchema } from '../dto/common.dto';
 
 const prisma = new PrismaClient();
 
 export class SessionController {
-  async getAll(req: AuthRequest, res: Response) {
+  async getAll(_req: AuthRequest, res: Response) {
     const sessions = await prisma.session.findMany({
       include: {
         teacher: true,
@@ -22,11 +24,11 @@ export class SessionController {
       name: session.name,
       date: session.date,
       description: session.description,
-      teacher: {
+        teacher: {
         id: session.teacher.id,
         firstName: session.teacher.firstName,
         lastName: session.teacher.lastName,
-      },
+        },
       users: session.participants.map((p: any) => p.user.id),
       createdAt: session.createdAt,
       updatedAt: session.updatedAt,
@@ -83,20 +85,7 @@ export class SessionController {
   }
 
   async create(req: AuthRequest, res: Response) {
-    const { name, date, description, teacherId } = req.body;
-
-    if (!name) {
-      return res.status(400).json({ message: 'Name is required' });
-    }
-    if (!date) {
-      return res.status(400).json({ message: 'Date is required' });
-    }
-    if (!description) {
-      return res.status(400).json({ message: 'Description is required' });
-    }
-    if (!teacherId) {
-      return res.status(400).json({ message: 'Teacher ID is required' });
-    }
+    const { name, date, description, teacherId } = CreateSessionSchema.parse(req.body);
 
     const user = await prisma.user.findUnique({
       where: { id: req.userId },
@@ -146,18 +135,8 @@ export class SessionController {
   }
 
   async update(req: AuthRequest, res: Response) {
-    const { id } = req.params as { id: string };
-    const { name, date, description, teacherId } = req.body;
-
-    if (!id) {
-      return res.status(400).json({ message: 'Session ID is required' });
-    }
-
-    const sessionId = parseInt(id);
-
-    if (isNaN(sessionId)) {
-      return res.status(400).json({ message: 'Invalid session ID' });
-    }
+    const sessionId = SessionIdSchema.parse(req.params).id;
+    const { name, date, description, teacherId } = UpdateSessionSchema.parse(req.body);
 
     const user = await prisma.user.findUnique({
       where: { id: req.userId },
@@ -221,17 +200,7 @@ export class SessionController {
   }
 
   async delete(req: AuthRequest, res: Response) {
-    const { id } = req.params as { id: string };
-
-    if (!id) {
-      return res.status(400).json({ message: 'Session ID is required' });
-    }
-
-    const sessionId = parseInt(id);
-
-    if (isNaN(sessionId)) {
-      return res.status(400).json({ message: 'Invalid session ID' });
-    }
+    const sessionId = SessionIdSchema.parse(req.params).id;
 
     const user = await prisma.user.findUnique({
       where: { id: req.userId },
@@ -257,21 +226,15 @@ export class SessionController {
   }
 
   async participate(req: AuthRequest, res: Response) {
-    const { id, userId } = req.params as { id: string, userId: string };
+    const sessionId = SessionIdSchema.parse(req.params).id;
+    const { userId } = req.params as { userId: string };
 
-    if (!id) {
-      return res.status(400).json({ message: 'Session ID is required' });
-    }
     if (!userId) {
       return res.status(400).json({ message: 'User ID is required' });
     }
 
-    const sessionId = parseInt(id);
     const participantUserId = parseInt(userId);
 
-    if (isNaN(sessionId)) {
-      return res.status(400).json({ message: 'Invalid session ID' });
-    }
     if (isNaN(participantUserId)) {
       return res.status(400).json({ message: 'Invalid user ID' });
     }
@@ -316,21 +279,15 @@ export class SessionController {
   }
 
   async unparticipate(req: AuthRequest, res: Response) {
-    const { id, userId } = req.params as { id: string, userId: string };
+    const sessionId = SessionIdSchema.parse(req.params).id;
+    const { userId } = req.params as { userId: string };
 
-    if (!id) {
-      return res.status(400).json({ message: 'Session ID is required' });
-    }
     if (!userId) {
       return res.status(400).json({ message: 'User ID is required' });
     }
 
-    const sessionId = parseInt(id);
     const participantUserId = parseInt(userId);
 
-    if (isNaN(sessionId)) {
-      return res.status(400).json({ message: 'Invalid session ID' });
-    }
     if (isNaN(participantUserId)) {
       return res.status(400).json({ message: 'Invalid user ID' });
     }

@@ -2,25 +2,13 @@ import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { generateToken } from '../utils/jwt.util';
+import { LoginSchema, RegisterSchema } from '../dto/auth.dto';
 
 const prisma = new PrismaClient();
 
 export class AuthController {
   async login(req: Request, res: Response) {
-    const { email, password } = req.body;
-
-    if (!email) {
-      return res.status(400).json({ message: 'Email is required' });
-    }
-    if (!password) {
-      return res.status(400).json({ message: 'Password is required' });
-    }
-    if (typeof email !== 'string') {
-      return res.status(400).json({ message: 'Email must be a string' });
-    }
-    if (typeof password !== 'string') {
-      return res.status(400).json({ message: 'Password must be a string' });
-    }
+    const { email, password } = LoginSchema.parse(req.body);
 
     const user = await prisma.user.findUnique({
       where: { email },
@@ -51,23 +39,7 @@ export class AuthController {
   }
 
   async register(req: Request, res: Response) {
-    const { email, password, firstName, lastName } = req.body;
-
-    if (!email) {
-      return res.status(400).json({ message: 'Email is required' });
-    }
-    if (!password) {
-      return res.status(400).json({ message: 'Password is required' });
-    }
-    if (!firstName) {
-      return res.status(400).json({ message: 'First name is required' });
-    }
-    if (!lastName) {
-      return res.status(400).json({ message: 'Last name is required' });
-    }
-    if (password.length < 8) {
-      return res.status(400).json({ message: 'Password must be at least 8 characters' });
-    }
+    const { email, password, firstName, lastName } = RegisterSchema.parse(req.body);
 
     const existingUser = await prisma.user.findUnique({
       where: { email },
