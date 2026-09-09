@@ -1,17 +1,14 @@
 import { Response } from 'express';
-import { PrismaClient } from '@prisma/client';
 import { AuthRequest } from '../middleware/auth.middleware';
 import { UserIdSchema } from '../dto/common.dto';
-
-const prisma = new PrismaClient();
+import { UserService } from '../services/user.service';
 
 export class UserController {
+  constructor(private readonly userService: UserService) {}
+
   async getById(req: AuthRequest, res: Response) {
     const { id } = UserIdSchema.parse(req.params);
-
-    const user = await prisma.user.findUnique({
-      where: { id },
-    });
+    const user = await this.userService.getById(id);
 
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
@@ -29,17 +26,13 @@ export class UserController {
       return res.status(403).json({ message: 'You can only delete your own account' });
     }
 
-    const user = await prisma.user.findUnique({
-      where: { id },
-    });
+    const user = await this.userService.getById(id);
 
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    await prisma.user.delete({
-      where: { id },
-    });
+    await this.userService.delete(id);
 
     return res.status(200).json({ message: 'User deleted successfully' });
   }
@@ -54,9 +47,7 @@ export class UserController {
       return res.status(401).json({ message: 'Unauthorized' });
     }
 
-    const user = await prisma.user.findUnique({
-      where: { id: req.userId },
-    });
+    const user = await this.userService.getById(req.userId);
 
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
@@ -68,11 +59,7 @@ export class UserController {
       return res.status(200).json(response);
     }
 
-    const updatedUser = await prisma.user.update({
-      where: { id: user.id },
-      data: { admin: true },
-    });
-
+    const updatedUser = await this.userService.promoteToAdmin(user.id);
     const { password, ...response } = updatedUser;
 
     return res.status(200).json(response);

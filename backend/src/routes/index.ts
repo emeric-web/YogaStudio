@@ -7,16 +7,28 @@ import { authMiddleware } from '../middleware/auth.middleware';
 import { prisma } from '../database/prisma';
 import { TeacherRepository } from '../repositories/teacher.repository';
 import { TeacherService } from '../services/teacher.service';
+import { UserRepository } from '../repositories/user.repository';
+import { UserService } from '../services/user.service';
+import { AuthRepository } from '../repositories/auth.repository';
+import { AuthService } from '../services/auth.service';
+import { SessionRepository } from '../repositories/session.repository';
+import { SessionService } from '../services/session.service';
 
 const router = Router();
 
 // Controllers
-const authController = new AuthController();
-const sessionController = new SessionController();
-const userController = new UserController();
 const teacherRepository = new TeacherRepository(prisma);
 const teacherService = new TeacherService(teacherRepository);
 const teacherController = new TeacherController(teacherService);
+const userRepository = new UserRepository(prisma);
+const userService = new UserService(userRepository);
+const userController = new UserController(userService);
+const authRepository = new AuthRepository(prisma);
+const authService = new AuthService(authRepository);
+const authController = new AuthController(authService);
+const sessionRepository = new SessionRepository(prisma);
+const sessionService = new SessionService(sessionRepository);
+const sessionController = new SessionController(sessionService);
 
 // Auth routes (public)
 router.post('/api/auth/login', (req, res) => authController.login(req, res));
