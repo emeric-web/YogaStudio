@@ -1,6 +1,6 @@
 import { Response } from 'express';
 import { AuthRequest } from '../middleware/auth.middleware';
-import { TeacherIdSchema } from '../dto/common.dto';
+import { TeacherIdParamsSchema } from '../dto/common.dto';
 import { TeacherService } from '../services/teacher.service';
 
 export class TeacherController {
@@ -13,7 +13,7 @@ export class TeacherController {
   }
 
   async getById(req: AuthRequest, res: Response) {
-    const { id } = TeacherIdSchema.parse(req.params);
+    const { id } = TeacherIdParamsSchema.parse(req.params);
     const teacher = await this.teacherService.getById(id);
 
     if (!teacher) {

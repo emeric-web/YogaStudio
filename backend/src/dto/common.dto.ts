@@ -8,6 +8,6 @@ export const createIdParamSchema = (resource: string) =>
       .positive({ error: `Invalid ${resource} ID` }),
   });
 
-export const SessionIdSchema = createIdParamSchema('session');
-export const UserIdSchema = createIdParamSchema('user');
-export const TeacherIdSchema = createIdParamSchema('teacher');
+export const SessionIdParamsSchema = createIdParamSchema('session');
+export const UserIdParamsSchema = createIdParamSchema('user');
+export const TeacherIdParamsSchema = createIdParamSchema('teacher');

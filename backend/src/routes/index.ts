@@ -36,7 +36,7 @@ router.post('/api/auth/register', (req, res) => authController.register(req, res
 
 // Session routes (protected)
 router.get('/api/session', authMiddleware, (req, res) => sessionController.getAll(req, res));
-router.get('/api/session/:id', authMiddleware, (req, res) => sessionController.getById(req, res));
+router.get('/api/session/:id', authMiddleware, (req, res) => sessionController.getByIdWithDetails(req, res));
 router.post('/api/session', authMiddleware, (req, res) => sessionController.create(req, res));
 router.put('/api/session/:id', authMiddleware, (req, res) => sessionController.update(req, res));
 router.delete('/api/session/:id', authMiddleware, (req, res) => sessionController.delete(req, res));

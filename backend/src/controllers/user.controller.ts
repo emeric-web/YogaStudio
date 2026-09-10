@@ -1,13 +1,13 @@
 import { Response } from 'express';
 import { AuthRequest } from '../middleware/auth.middleware';
-import { UserIdSchema } from '../dto/common.dto';
+import { UserIdParamsSchema } from '../dto/common.dto';
 import { UserService } from '../services/user.service';
 
 export class UserController {
   constructor(private readonly userService: UserService) { }
 
   async getById(req: AuthRequest, res: Response) {
-    const { id } = UserIdSchema.parse(req.params);
+    const { id } = UserIdParamsSchema.parse(req.params);
     const result = await this.userService.getById(id);
 
     if (!result) {
@@ -18,7 +18,7 @@ export class UserController {
   }
 
   async delete(req: AuthRequest, res: Response) {
-    const { id } = UserIdSchema.parse(req.params);
+    const { id } = UserIdParamsSchema.parse(req.params);
     const result = await this.userService.delete(id, req.userId);
 
     if (result.status === 'forbidden') {
