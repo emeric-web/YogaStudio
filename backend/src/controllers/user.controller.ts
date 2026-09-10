@@ -4,64 +4,50 @@ import { UserIdSchema } from '../dto/common.dto';
 import { UserService } from '../services/user.service';
 
 export class UserController {
-  constructor(private readonly userService: UserService) {}
+  constructor(private readonly userService: UserService) { }
 
   async getById(req: AuthRequest, res: Response) {
     const { id } = UserIdSchema.parse(req.params);
-    const user = await this.userService.getById(id);
+    const result = await this.userService.getById(id);
 
-    if (!user) {
+    if (!result) {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    const { password, ...response } = user;
-
-    return res.status(200).json(response);
+    return res.status(200).json(result);
   }
 
   async delete(req: AuthRequest, res: Response) {
     const { id } = UserIdSchema.parse(req.params);
+    const result = await this.userService.delete(id, req.userId);
 
-    if (req.userId !== id) {
+    if (result.status === 'forbidden') {
       return res.status(403).json({ message: 'You can only delete your own account' });
     }
 
-    const user = await this.userService.getById(id);
-
-    if (!user) {
+    if (result.status === 'notFound') {
       return res.status(404).json({ message: 'User not found' });
     }
-
-    await this.userService.delete(id);
 
     return res.status(200).json({ message: 'User deleted successfully' });
   }
 
   async promoteSelfToAdmin(req: AuthRequest, res: Response) {
-    const isDev = (process.env.NODE_ENV || 'development') === 'development';
-    if (!isDev) {
-      return res.status(403).json({ message: 'Admin self-promotion is only available in development' });
-    }
 
     if (!req.userId) {
       return res.status(401).json({ message: 'Unauthorized' });
     }
 
-    const user = await this.userService.getById(req.userId);
+    const result = await this.userService.promoteSelfToAdmin(req.userId);
 
-    if (!user) {
+    if (result.status === 'notDevelopment') {
+      return res.status(403).json({ message: 'Admin self-promotion is only available in development' });
+    }
+
+    if (result.status === 'notFound') {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    if (user.admin) {
-      const { password, ...response } = user;
-
-      return res.status(200).json(response);
-    }
-
-    const updatedUser = await this.userService.promoteToAdmin(user.id);
-    const { password, ...response } = updatedUser;
-
-    return res.status(200).json(response);
+    return res.status(200).json(result.user);
   }
 }
