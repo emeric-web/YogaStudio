@@ -42,7 +42,6 @@ describe('SessionForm', () => {
                 <Routes>
                     <Route path="/sessions/create" element={<SessionForm />} />
                     <Route path="/sessions" element={<p>Sessions page</p>} />
-                    
                 </Routes>
             </MemoryRouter>,
         );
