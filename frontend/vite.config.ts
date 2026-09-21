@@ -20,7 +20,7 @@ export default defineConfig({
       provider: 'v8',
       reporter: ['text', 'html', 'lcov', 'json-summary'],
       thresholds: { statements: 80, branches: 80, functions: 80, lines: 80 },
-      reportsDirectory: './coverage/frontend',
+      reportsDirectory: '../tests-coverage/frontend',
       include: ['src/**/*.{ts,tsx}'],
       exclude: [
         'src/**/*.d.ts',
@@ -32,7 +32,7 @@ export default defineConfig({
   },
   server: {
     port: 3000,
-    watch: { ignored: ['**/coverage/**', '**/reports/**', '**/.nyc_output/**', '**/cypress/screenshots/**'] },
+    watch: { ignored: ['**/coverage/**', '**/tests-coverage/**', '**/reports/**', '**/.nyc_output/**', '**/cypress/screenshots/**'] },
     proxy: {
       '/api': {
         target: process.env.E2E_COVERAGE === 'true' ? 'http://127.0.0.1:8082' : 'http://localhost:8080',

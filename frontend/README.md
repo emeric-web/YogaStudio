@@ -142,10 +142,10 @@ npm run test:coverage
 | Rapport | Emplacement / utilisation |
 | --- | --- |
 | Texte | Résumé global et par fichier dans le terminal |
-| HTML | Ouvrir `coverage/frontend/index.html` dans un navigateur pour explorer les fichiers et le code non couvert |
-| LCOV | `coverage/frontend/lcov.info`, exploitable par les outils de suivi de qualité |
+| HTML | Ouvrir `../tests-coverage/frontend/index.html` dans un navigateur pour explorer les fichiers et le code non couvert |
+| LCOV | `../tests-coverage/frontend/lcov.info`, exploitable par les outils de suivi de qualité |
 
-Le dossier `coverage/` est généré et ignoré par Git.
+Le dossier `../tests-coverage/` est généré et ignoré par Git.
 
 ### Indicateurs
 
@@ -214,12 +214,12 @@ L'instrumentation [Istanbul recommandée par Cypress pour Vite](https://docs.cyp
 
 | Rapport | Emplacement |
 | --- | --- |
-| Couverture E2E HTML | `coverage/e2e/index.html` |
-| Couverture E2E LCOV | `coverage/e2e/lcov.info` |
-| Résumé E2E JSON | `coverage/e2e/coverage-summary.json` |
+| Couverture E2E HTML | `../tests-coverage/e2e/index.html` |
+| Couverture E2E LCOV | `../tests-coverage/e2e/lcov.info` |
+| Résumé E2E JSON | `../tests-coverage/e2e/coverage-summary.json` |
 | Résultats des tests JUnit XML | `reports/e2e/results-*.xml` |
 | Captures en cas d'échec | `cypress/screenshots/` |
-| Couverture Vitest | `coverage/frontend/index.html` et `coverage/frontend/coverage-summary.json` |
+| Couverture Vitest | `../tests-coverage/frontend/index.html` et `../tests-coverage/frontend/coverage-summary.json` |
 
 Les résultats précédents E2E sont nettoyés avant chaque exécution complète. `nyc check-coverage` fait échouer la commande si l'un des quatre indicateurs globaux E2E est inférieur à **80 %**. Les deux rapports sont **indépendants** : la couverture Vitest ne compense pas une couverture Cypress insuffisante.
 

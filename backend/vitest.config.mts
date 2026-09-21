@@ -11,7 +11,7 @@ export default defineConfig({
       provider: 'v8',
       include: ['src/services/**/*.ts'],
       exclude: ['src/dto/**'],
-      reportsDirectory: 'coverage/unit',
+      reportsDirectory: '../tests-coverage/backend',
       reporter: ['text', 'html', 'lcov', 'json-summary'],
       thresholds: {
         perFile: true,
