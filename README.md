@@ -284,7 +284,15 @@ The project supports comprehensive testing with the following frameworks:
 - **Integration tests**: For testing API endpoints
 - **End-to-end tests**: For testing critical user flows
 
-Run tests with the appropriate npm scripts in each directory.
+Frontend unit/integration tests and Cypress E2E tests are documented in the [frontend README](frontend/README.md#tests-e2e-cypress).
+
+```bash
+cd frontend
+npm run test:coverage
+npm run test:e2e
+```
+
+Cypress runs against the real API and a dedicated PostgreSQL test database. Each suite enforces at least 80% coverage for statements, branches, functions, and lines, with separate reports under `frontend/coverage/frontend/` and `frontend/coverage/e2e/`.
 
 ## Troubleshooting
 
