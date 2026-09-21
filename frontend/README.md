@@ -17,7 +17,7 @@ Application React permettant de consulter les séances de yoga, de gérer les in
 - npm.
 - Pour utiliser l’application : le backend et sa base de données configurés selon le [README principal](../README.md).
 
-Les tests frontend simulent les appels aux services ou à l’API : ils ne nécessitent ni backend démarré ni base de données.
+Les tests Vitest frontend simulent les appels aux services ou à l’API : ils ne nécessitent ni backend démarré ni base de données.
 
 ## Installation et lancement
 
@@ -142,8 +142,8 @@ npm run test:coverage
 | Rapport | Emplacement / utilisation |
 | --- | --- |
 | Texte | Résumé global et par fichier dans le terminal |
-| HTML | Ouvrir `coverage/index.html` dans un navigateur pour explorer les fichiers et le code non couvert |
-| LCOV | `coverage/lcov.info`, exploitable par les outils de suivi de qualité |
+| HTML | Ouvrir `coverage/frontend/index.html` dans un navigateur pour explorer les fichiers et le code non couvert |
+| LCOV | `coverage/frontend/lcov.info`, exploitable par les outils de suivi de qualité |
 
 Le dossier `coverage/` est généré et ignoré par Git.
 
@@ -160,7 +160,7 @@ L’objectif du plan de test est d’atteindre au moins **80 % pour chacun des q
 
 La configuration inclut les fichiers `src/**/*.ts` et `src/**/*.tsx`, y compris les fichiers applicatifs non testés. Elle exclut les fichiers de tests, les déclarations `*.d.ts`, `src/types/` et `src/main.tsx`.
 
-Les seuils de 80 % ne sont pas encore imposés automatiquement dans Vitest : consulter les résultats après chaque exécution. La couverture globale agrège les tests unitaires et d’intégration lancés par la commande.
+Les seuils de 80 % sont imposés automatiquement sur les instructions, branches, fonctions et lignes : la commande échoue si un indicateur global passe sous le seuil. La couverture globale agrège les tests unitaires et d’intégration lancés par la commande.
 
 Pour rédiger un bilan, relever :
 
@@ -170,4 +170,57 @@ Pour rédiger un bilan, relever :
 - Le périmètre et les exclusions de couverture.
 - Les scénarios restant à vérifier.
 
-Les chiffres ne sont pas figés dans ce README : relancer la commande pour obtenir les résultats correspondant au code courant. Une couverture élevée ne garantit pas que tous les comportements ont été vérifiés. Les parcours avec un backend réel et la validation des champs obligatoires dans le navigateur doivent être évalués séparément.
+Les chiffres ne sont pas figés dans ce README : relancer la commande pour obtenir les résultats correspondant au code courant. Une couverture élevée ne garantit pas que tous les comportements ont été vérifiés. Les parcours avec un backend réel et la validation des champs obligatoires dans le navigateur sont vérifiés par la suite Cypress ci-dessous.
+
+## Tests E2E Cypress
+
+### Installation et exécution
+
+Prérequis supplémentaires : Docker avec Compose et les [dépendances système de Cypress](https://docs.cypress.io/app/get-started/install-cypress#Linux-Prerequisites).
+Installer aussi les dépendances backend (`cd backend && npm ci && npm run prisma:generate` depuis la racine).
+
+Depuis `frontend/` :
+
+```bash
+npm ci
+npm run test:e2e
+# Mode interactif, avec les mêmes serveurs et la même base dédiée
+npm run test:e2e:open
+# Arrêter et supprimer le conteneur de tests après utilisation
+npm run e2e:db:down
+```
+
+`test:e2e` démarre PostgreSQL, synchronise le schéma Prisma, lance la vraie API Express et le front Vite instrumenté, attend leur disponibilité, puis exécute Cypress dans Electron. Les serveurs front/back sont arrêtés automatiquement, même en cas d'échec. Le conteneur PostgreSQL reste disponible jusqu'à `e2e:db:down` ; son stockage est éphémère.
+
+Les ports **5434** (PostgreSQL), **8082** (API) et **3001** (front) doivent être libres. La connexion de test est fixée dans `scripts/e2e-env.cjs` vers la base **yogastudio_e2e**, indépendante de `backend/.env` et du Docker Compose de développement. Avant chaque test, `cy.task('db:reset')` réinitialise uniquement cette base avec un administrateur, un membre, deux professeurs et une séance. Ne pas exécuter plusieurs suites simultanément sur cette même base.
+
+### Scénarios et intégration front/back
+
+| Fichier | Scénarios |
+| --- | --- |
+| `cypress/e2e/01-auth.cy.js` | Inscription, doublon d'email, validation native, connexion, mauvais identifiants, persistance, déconnexion, routes protégées, stockage corrompu et erreurs HTTP |
+| `cypress/e2e/02-sessions.cy.js` | Liste, détails, participation/désinscription, création/modification/suppression administrateur, annulations, liste vide, accès interdit, séance absente et erreurs HTTP |
+| `cypress/e2e/03-profile.cy.js` | Profil, retour, suppression et refus de reconnexion, promotion en développement, erreurs de chargement/suppression/promotion |
+
+Les parcours nominaux traversent **navigateur → proxy Vite → API Express → Prisma → PostgreSQL**. L'authentification des tests de séances et de profil passe par la vraie API ; les tests d'authentification utilisent les formulaires dans le navigateur. Les rechargements vérifient la persistance des opérations. Un test vérifie également que l'API refuse la création par un non-administrateur.
+
+Les blocs explicitement intitulés « erreurs réseau simulées » utilisent `cy.intercept` pour provoquer des réponses en échec de façon déterministe. Ils complètent les parcours réels et ne vérifient pas le comportement du backend lors d'une panne. Les confirmations et alertes du navigateur sont contrôlées par Cypress. Aucun temps d'attente fixe ni désactivation globale des erreurs JavaScript n'est utilisé.
+
+La promotion étant une fonctionnalité de développement, ces tests exécutent le backend avec `NODE_ENV=development`.
+
+### Rapports et seuils E2E
+
+L'instrumentation [Istanbul recommandée par Cypress pour Vite](https://docs.cypress.io/app/tooling/code-coverage#Using-Vite) est activée uniquement par `E2E_COVERAGE=true`. Elle est absente du build normal. `@cypress/code-coverage` collecte le code réellement exécuté dans le navigateur.
+
+| Rapport | Emplacement |
+| --- | --- |
+| Couverture E2E HTML | `coverage/e2e/index.html` |
+| Couverture E2E LCOV | `coverage/e2e/lcov.info` |
+| Résumé E2E JSON | `coverage/e2e/coverage-summary.json` |
+| Résultats des tests JUnit XML | `reports/e2e/results-*.xml` |
+| Captures en cas d'échec | `cypress/screenshots/` |
+| Couverture Vitest | `coverage/frontend/index.html` et `coverage/frontend/coverage-summary.json` |
+
+Les résultats précédents E2E sont nettoyés avant chaque exécution complète. `nyc check-coverage` fait échouer la commande si l'un des quatre indicateurs globaux E2E est inférieur à **80 %**. Les deux rapports sont **indépendants** : la couverture Vitest ne compense pas une couverture Cypress insuffisante.
+
+Le périmètre E2E inclut les pages, composants, routes, services, `App.tsx` et `main.tsx`. Les fichiers de tests, types et préparation Vitest sont exclus. Il s'agit de la **couverture du code frontend exercé par les E2E**, pas de la couverture du code backend. Les tests Cypress eux-mêmes ne figurent pas dans le dénominateur.

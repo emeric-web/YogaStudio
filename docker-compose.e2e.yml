@@ -1,0 +1,16 @@
+services:
+  postgres-e2e:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: yoga_e2e
+      POSTGRES_PASSWORD: yoga_e2e
+      POSTGRES_DB: yogastudio_e2e
+    ports:
+      - "127.0.0.1:5434:5432"
+    tmpfs:
+      - /var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U yoga_e2e -d yogastudio_e2e"]
+      interval: 2s
+      timeout: 5s
+      retries: 30
