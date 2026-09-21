@@ -4,6 +4,9 @@
   "description": "Backend API for Yoga Studio App",
   "main": "dist/app.js",
   "scripts": {
+    "test": "vitest",
+    "test:unit": "vitest run",
+    "test:coverage": "vitest run --coverage",
     "dev": "nodemon",
     "build": "tsc",
     "start": "node dist/app.js",
@@ -30,9 +33,11 @@
     "@types/express": "^5.0.6",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^22",
+    "@vitest/coverage-v8": "^5.0.1",
     "nodemon": "^3.1.11",
     "prisma": "^5.20.0",
     "ts-node": "^10.9.2",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^5.0.1"
   }
 }
