@@ -59,7 +59,7 @@ A full-stack web application for managing yoga studio operations, including sess
 ### 1. Clone the repository
 
 ```bash
-cd p4-dfsjs-starter
+cd yogaStudio
 ```
 
 ### 2. Install Backend Dependencies
@@ -247,7 +247,7 @@ npm run preview      # Preview production build
 ## Project Structure
 
 ```
-p4-dfsjs-starter/
+yogaStudio/
 ├── backend/
 │   ├── src/
 │   │   ├── controllers/      # Request handlers
@@ -284,6 +284,8 @@ The project supports comprehensive testing with the following frameworks:
 - **Integration tests**: For testing API endpoints
 - **End-to-end tests**: For testing critical user flows
 
+### Frontend tests
+
 Frontend unit/integration tests and Cypress E2E tests are documented in the [frontend README](frontend/README.md#tests-e2e-cypress).
 
 ```bash
@@ -292,7 +294,39 @@ npm run test:coverage
 npm run test:e2e
 ```
 
-Cypress runs against the real API and a dedicated PostgreSQL test database. Each suite enforces at least 80% coverage for statements, branches, functions, and lines, with separate reports under `frontend/coverage/frontend/` and `frontend/coverage/e2e/`.
+Cypress runs against the real API and a dedicated PostgreSQL test database. Each suite enforces at least 80% coverage for statements, branches, functions, and lines, with separate reports under `tests-coverage/frontend/` and `tests-coverage/e2e/`.
+
+### Backend tests
+
+Backend tests must be run from the `backend` directory:
+
+```bash
+cd backend
+```
+
+Service unit tests are located in `tests/services/` and use mocked repositories. Controller integration tests are located in `tests/controllers/` and send real HTTP requests to the Express application with Supertest. Prisma is mocked in these tests so the development database is not modified.
+
+```bash
+# Run all tests in watch mode
+npm test
+
+# Run service unit tests
+npm run test:unit
+
+# Run controller integration tests
+npm run test:integration
+
+# Run all tests with coverage
+npm run test:coverage
+```
+
+The `test:coverage` command generates backend reports in `tests-coverage/backend/`:
+
+- text summary in the terminal;
+- HTML report in `tests-coverage/backend/index.html`;
+- LCOV report in `tests-coverage/backend/lcov.info`.
+
+The configured coverage targets backend services and enforces a minimum threshold of 80% for statements, branches, functions, and lines.
 
 ## Troubleshooting
 
